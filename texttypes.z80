@@ -1,0 +1,79 @@
+; Text Types
+; Nathan Altice   5/16/16
+
+        INCLUDE "HVGLIB.H"
+
+        ORG     $2000   ; Starting address (ORiGin) for all Bally cartridges  ($2000-$3FFF)
+        DB      "U"     ; Balley System Sentinel (or $55)      
+        DW      MENUST  ; Cartridge menu data structure ('Next menu node')
+        DW      PRGNAM  ; String address for first game 
+        DW      PRGST   ; Start address for first game
+        
+; Main Program
+PRGST:  DI              ; disable interrupts
+
+        SYSTEM  INTPC
+        
+        DO      SETOUT  ; Set Display Ports
+        DB      $B0     ; Vertical Blanking Line  ($B0 = 176)   (screen is 102 lines tall)
+        DB      40      ; Left/Right Color Boundary    (40 = RIGHT EDG; screen is 40 bytes wide)
+        DB      $08     ; Interrupt Mode      ($08 = screen interrupts only)
+        
+        DO      COLSET  ; Set Color Registers
+        DW      COLTAB  ; Color Table
+
+        DO      FILL    ; Fill a Contiguous area w/ Constant
+        DW      NORMEM  ; Destination                    
+        DW      4000D   ; Bytes to move
+        DB      $00     ; Background color
+        
+        DO      STRDIS  ; DISPLAY STRING
+        DB      0       ; X-COORDINATE
+        DB      0       ; Y-COORDINATE
+        DB      00001100B      ; OPTIONS (no enlarge, no xor/or, fg/bg color )
+        DW      HELLO   ; LABEL FOR STRING 
+        
+        DO      STRDIS  ; DISPLAY STRING
+        DB      0       ; X-COORDINATE
+        DB      10       ; Y-COORDINATE
+        DB      01000100B      ; OPTIONS (enlarge x 2, no xor/or, fg/bg color )
+        DW      SEEM    ; LABEL FOR STRING   
+        
+        DO      STRDIS  ; DISPLAY STRING
+        DB      0       ; X-COORDINATE
+        DB      30       ; Y-COORDINATE
+        DB      10001101B      ; OPTIONS (enlarge x 2, no xor/or, fg/bg color )
+        DW      BIG   ; LABEL FOR STRING 
+        
+        DO      STRDIS  ; DISPLAY STRING
+        DB      96       ; X-COORDINATE
+        DB      0       ; Y-COORDINATE
+        DB      11001011B      ; OPTIONS (enlarge x 2, no xor/or, fg/bg color )
+        DW      HUH   ; LABEL FOR STRING                             
+        
+        EXIT
+        
+        EI              ; enable interrupts
+        
+LOOP:   NOP
+        JP      LOOP    ; Infinite loop
+        
+; Color Table #1
+COLTAB: DB      $00     ; Color 3 Left - Black
+        DB      $5A     ; Color 2 Left - Red
+        DB      $95     ; Color 1 Left - Light Green
+        DB      $07     ; Color 0 Left - White
+        DB      $1A     ; Color 3 Right - PURPLE
+        DB      $77     ; Color 2 Right - Yellow
+        DB      $0F     ; Color 1 Right - Pink
+        DB      $F2     ; Color 0 Right - BLUE
+        
+PRGNAM: DB      "TEXT TYPES", 0
+
+HELLO:  DB      "HELLO, WORLD", 0
+
+SEEM:   DB      "I SEEM", 0
+
+BIG:    DB      "BIG", 0
+
+HUH:    DB      "?", 0
