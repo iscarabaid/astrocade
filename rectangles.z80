@@ -1,0 +1,81 @@
+; Colors and Rectangles
+; Nathan Altice   5/16/16
+
+        INCLUDE "HVGLIB.H"
+
+        ORG     $2000   ; Starting address (ORiGin) for all Bally cartridges  ($2000-$3FFF)
+        DB      "U"     ; Balley System Sentinel (or $55)
+                        ; "An autostart cartridge is indicated by a jump instruction that should branch
+                        ;       to the starting address of the cartridge
+                        ; A standard cartridge is indicated by a sentinel byte of $55 at location
+                        ;       $2000. Following this byte is the first node of the cartridge's menu
+                        ;       data structure (MENUST). This data structure gives the name and starting
+                        ;       address of each program in the cartridge."  (Manual, 72)
+        
+        DW      MENUST  ; Cartridge menu data structure ('Next menu node')
+        DW      PRGNAM  ; String address for first game 
+        DW      PRGST   ; Start address for first game
+        
+; Main Program
+PRGST:  DI              ; disable interrupts
+
+        SYSTEM  INTPC
+        
+        DO      SETOUT  ; Set Display Ports
+        DB      $cc     ; Vertical Blanking Line  ($B0 = 176)   (screen is 102 lines tall)
+        DB      $80+30      ; Left/Right Color Boundary    (20 = midway; screen is 40 bytes wide)
+        DB      $08     ; Interrupt Mode      ($08 = screen interrupts only)
+        
+        DO      COLSET  ; Set Color Registers
+        DW      COLTAB  ; Color Table
+
+        DO      FILL  ; Fill a Contiguous area w/ Constant
+        DW      NORMEM  ; Destination                    
+        DW      4000D   ; Bytes to move
+        DB      $00     ; Background color
+        
+        DO      RECTAN  ; rectangle
+        DB      20      ; x
+        DB      20      ; y
+        DB      120      ; width
+        DB      20      ; height
+        DB      $AA     ; color mask  (RED)
+        
+        DO      RECTAN  ; rectangle
+        DB      20      ; x
+        DB      40      ; y
+        DB      120     ; width
+        DB      20      ; height
+        db      11111111b  ; (BLACK)
+        ;DB      00011011B     ; color mask   (CHECKERBOARD)
+        
+        DO      RECTAN  ; rectangle
+        DB      20      ; x
+        DB      60      ; y
+        DB      120      ; width
+        DB      20      ; height
+        DB      $55     ; color mask   (GREEN/PINK)
+        
+        EXIT
+        
+        EI              ; enable interrupts
+        
+LOOP:   NOP
+        JP      LOOP    ; Infinite loop
+        
+; Color Table #1
+COLTAB: DB      $00     ; Color 3 Left - Black
+        DB      $5A     ; Color 2 Left - Red
+        DB      $95     ; Color 1 Left - Light Green
+        DB      $07     ; Color 0 Left - White
+        DB      $1A     ; Color 3 Right - PURPLE
+        DB      $77     ; Color 2 Right - Yellow
+        DB      $0F     ; Color 1 Right - Pink
+        DB      $F2     ; Color 0 Right - BLUE
+        
+PRGNAM: DB      "RECTANGLES", 0
+
+
+        
+
+          
