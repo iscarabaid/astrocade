@@ -1,0 +1,97 @@
+; Input Test
+; N. Altice 6/1/16
+
+        INCLUDE "HVGLIB.H"
+
+        ORG     $2000   ; Starting address (ORiGin) for all Bally cartridges  ($2000-$3FFF)
+        DB      "U"     ; Balley System Sentinel (or $55)
+        DW      MENUST  ; Cartridge menu data structure ('Next menu node')
+        DW      MENNAM  ; String address for first game
+        DW      PRGST   ; Start address for first game
+
+; Main Program
+PRGST:  di
+        system  intpc
+
+        DO      SETOUT  ; Set Display Ports
+        DB      $c8     ; Vertical Blanking Line
+        DB      40      ; Left/Right Color Boundary    (40 = RIGHT EDG; screen is 40 bytes wide)
+        DB      $08     ; Interrupt Mode      ($08 = screen interrupts only)
+
+        DO      COLSET  ; Set Color Registers
+        DW      COLTAB  ; Color Table
+
+        DO      FILL    ; Fill a Contiguous area w/ Constant
+        DW      NORMEM  ; Destination
+        DW      4000D   ; Bytes to move
+        DB      $00     ; Background color
+
+        exit
+
+        ld      a,$99
+        ld      (ct0),a
+
+        system  actint
+
+loop:   system  intpc
+        ;
+        do      sentry
+        dw      $0              ; no keyboard
+        do      doit            ; get input
+        dw      DOTAB           ; doit table
+
+        ; display timer (2 digits)
+        do      disnum
+        db      0
+        db      0
+        db      00001100b ; options
+        db      00000010b ; e. options
+        dw      ct0
+
+        dont    xintc
+
+        jp      loop
+
+; DOIT table to handle SENTRY results
+DOTAB:  RC      ST0,TRIG0,$00   ; trigger happy
+        RC      SCT0,TIMED,ENDx ; timer
+
+; Trigger zero handler
+TRIG0:  ld      a,$10     ; get sentry value
+        cp      b         ; trigger on or off?
+        jp      nz,NOSQZ  ; if it's trigger release, leave
+        syssuk  ranged    ; otherwise, paint a rando rectangle
+        db      120       ; x < 120
+        ld      e,a
+        syssuk  ranged    ; y < 60
+        db      60
+        ld      d,a
+        syssuk  ranged    ; always a square (0-39)
+        db      40
+        ld      b,a
+        ld      c,a
+        syssuk  ranged    ; random color mask (stripes!)
+        db      $ff
+        system  rectan
+NOSQZ:  ret
+
+; CT0 time ran out routine
+; (display X when timer hits 0)
+TIMED:  syssuk  CHRDIS
+        db      30      ;x
+        db      0       ;y
+        db      01001000b ;double-size, pink on white
+        db      "X"
+        RET
+
+MENNAM: DB      "INPUT TEST"
+        DB      $00     ; End string
+
+COLTAB: DB      $00     ; Color 3 Left - black
+        DB      $2F     ; Color 2 Left -  mild yellow
+        DB      $6F     ; Color 1 Left - pink
+        DB      $07     ; Color 0 Left - white (bg)
+        DB      $AA     ; Color 3 Right -  forest green
+        DB      $57     ; Color 2 Right - salmon
+        DB      $11     ; Color 1 Right -  dark purple
+        DB      $E2     ; Color 0 Right - blue (bg)
