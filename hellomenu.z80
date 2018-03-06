@@ -1,0 +1,19 @@
+; Hello, Menu
+; N. Altice 5/20/16
+; Assembles with zmac
+
+        INCLUDE "HVGLIB.H"
+
+        ORG     $2000   ; Starting address (ORiGin) for all Bally cartridges  ($2000-$3FFF)
+        DB      "U"     ; Balley System Sentinel (or $55)
+        DW      MENUST  ; Cartridge menu data structure ('Next menu node')
+        DW      MENNAM  ; String address for first game
+        DW      LOOP    ; Start address for first game
+
+; Main Program
+LOOP:   NOP             ; do nothing
+        JP      LOOP    ; forever....
+
+
+MENNAM: DB      "HELLO"
+        DB      $00     ; End string
