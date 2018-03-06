@@ -23,7 +23,7 @@ PRGST:  DI              ; disable interrupts
         
         DO      SETOUT  ; Set Display Ports
         DB      $cc     ; Vertical Blanking Line  ($B0 = 176)   (screen is 102 lines tall)
-        DB      $80+30      ; Left/Right Color Boundary    (20 = midway; screen is 40 bytes wide)
+        DB      $80+20  ; Left/Right Color Boundary (20 = midway; screen is 40 bytes wide)
         DB      $08     ; Interrupt Mode      ($08 = screen interrupts only)
         
         DO      COLSET  ; Set Color Registers
