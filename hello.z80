@@ -1,0 +1,55 @@
+; 
+; Hello World
+
+        INCLUDE "HVGLIB.H"
+
+        ORG     $2000   ; First byte of Cartridge
+        DB      "U"     ; User System Sentinel
+        
+        DW      MENUST  ; Next menu link
+        DW      PRGNAM  ; Address of title for program
+        DW      PRGST   ; Jump here if prog is selected
+        
+; Main Program
+PRGST:  DI
+        SYSTEM  (INTPC) ; Begin Interpreting
+          
+        DO      (SETOUT) ; Set Display Ports
+        DB      $B0     ; Vertical Blanking Line
+        DB      $2C     ; Left/Right Color Boundary
+        DB      $08     ; Interrupt Mode
+        
+        DO      (COLSET) ; Set Color Registers
+        DW      COLTAB  ; Color Table
+        
+        DO      (FILL)  ; Fill a Contiguous area w/ Constant
+        DW      NORMEM  ; Destination                    
+        DW      4000D   ; Bytes to move
+        DB      $00     ; Background color
+        
+        DO      (STRDIS) ; Display String
+        DB      10       ; X coordinate
+        DB      10       ; Y coordinate
+        DB      $0C     ; Options
+        DW      STRING  ; Address of string to display
+        
+        EXIT
+        
+LOOP:   NOP
+        JP      LOOP    ; Infinite loop
+        
+; Color Table #1
+COLTAB: DB      $00     ; Color 3 Left - Black
+        DB      $5A     ; Color 2 Left - Red
+        DB      $77     ; Color 1 Left - Yellow
+        DB      $07     ; Color 0 Left - White
+        DB      $00     ; Color 3 Right - Black
+        DB      $5A     ; Color 2 Right - Red
+        DB      $77     ; Color 1 Right - Yellow
+        DB      $07     ; Color 0 Right - White
+        
+PRGNAM: DB      "DISPLAY STRING"
+        DB      $00     ; End string
+        
+STRING: DB      "HELLO WORLD"
+        DB      $00     ; End string
